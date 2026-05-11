@@ -1,0 +1,7 @@
+/target
+
+# Generated assessment reports and exports
+M365-Assessment/
+*.html
+*.pdf
+*.csv
