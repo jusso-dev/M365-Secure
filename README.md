@@ -102,7 +102,7 @@ These are the delegated scopes the binary requests (`GRAPH_SCOPES` in `src/auth/
 - `Reports.Read.All`
 - `Sites.Read.All`
 - `SecurityAlert.Read.All`
-- `InformationProtectionPolicy.Read.All`
+- `InformationProtectionPolicy.Read`
 - `RecordsManagement.Read.All`
 - `DeviceManagementServiceConfig.Read.All`
 - `AccessReview.Read.All`

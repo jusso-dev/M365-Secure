@@ -110,7 +110,7 @@ pub const GRAPH_SCOPES: &[&str] = &[
     "Sites.Read.All",
     "SecurityAlert.Read.All",
     // Needed by the Purview, PIM, access review, enrolment and backup checks.
-    "InformationProtectionPolicy.Read.All",
+    "InformationProtectionPolicy.Read",
     "RecordsManagement.Read.All",
     "DeviceManagementServiceConfig.Read.All",
     "AccessReview.Read.All",

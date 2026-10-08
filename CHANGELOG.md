@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.1] - 2026-10-08
+
+### Fixed
+
+- Device-code sign-in requested `InformationProtectionPolicy.Read.All`, which only exists as an application permission; the delegated scope is `InformationProtectionPolicy.Read`. Sign-in also now drops any scope Entra reports as unknown (AADSTS650053) and continues, instead of failing outright.
+
 ## [1.1.0] - 2026-10-08
 
 ### Fixed
