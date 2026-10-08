@@ -220,7 +220,7 @@ footer {{ color: var(--text-muted); font-size: 0.82em; padding: 24px 0 40px; bor
         r#"
 <div class="exec-summary">
 <h2>Summary</h2>
-<p><strong>{pass}</strong> of the <strong>{scored}</strong> controls that could be scored are in place ({score:.0}%). {fail} are not, {warn} are partly in place, and {review} need a person to review the evidence.</p>
+<p><strong>{pass}</strong> of the <strong>{scored}</strong> controls that could be scored {are_in_place} in place ({score:.0}%). {fail} {are_not} not, {warn} {are_partly} partly in place, and {review} {need} a person to review the evidence.</p>
 {unknown_line}
 {not_licensed_line}
 {critical_warning}
@@ -239,6 +239,10 @@ footer {{ color: var(--text-muted); font-size: 0.82em; padding: 24px 0 40px; bor
         fail = fail,
         warn = warn,
         review = review,
+        are_in_place = if pass == 1 { "is" } else { "are" },
+        are_not = if fail == 1 { "is" } else { "are" },
+        are_partly = if warn == 1 { "is" } else { "are" },
+        need = if review == 1 { "needs" } else { "need" },
         unknown_line = if unknown > 0 {
             format!("<p class=\"muted\"><strong>{unknown}</strong> checks could not be evaluated. Each one says why in its Current value; most are missing Graph permissions or APIs this sign-in isn't consented for. They are excluded from the score, so the score may be flattering until they run.</p>")
         } else {
@@ -393,7 +397,11 @@ footer {{ color: var(--text-muted); font-size: 0.82em; padding: 24px 0 40px; bor
     if !compliance_results.is_empty() {
         html.push_str(r#"<h2 style="margin: 30px 0 6px">Framework coverage</h2><p class="eyebrow" style="margin-bottom:14px">Indicative: only the controls this scan could map and score</p>"#);
         html.push_str(r#"<div class="compliance-grid">"#);
-        for cr in compliance_results {
+        // ATT&CK is a threat taxonomy, not a control set; a coverage percentage for it misleads.
+        for cr in compliance_results
+            .iter()
+            .filter(|cr| cr.framework_id != "mitre-attack")
+        {
             let bar_color = if cr.pass_rate >= 80.0 {
                 "var(--pass)"
             } else if cr.pass_rate >= 50.0 {
