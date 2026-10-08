@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser, Debug)]
 #[command(
     name = "m365-assess",
-    version = "1.0.0",
+    version = env!("CARGO_PKG_VERSION"),
     about = "Microsoft 365 Security Assessment CLI Tool",
     long_about = "A comprehensive security assessment tool for Microsoft 365 tenants.\nAnalyzes identity, email, collaboration, device management, and security configurations\nagainst CIS, NIST, ISO 27001, SOC 2, and other compliance frameworks."
 )]

@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Semaphore;
 
-use crate::auth::AuthManager;
+use crate::auth::{AuthManager, Resource};
 
 /// Microsoft Graph API client with rate limiting, retry, and pagination
 #[derive(Clone)]
@@ -65,28 +65,6 @@ impl GraphClient {
                 anyhow::anyhow!("JSON parse error: {}", e)
             })?;
 
-            results.extend(page.value);
-            url = page.next_link;
-        }
-
-        Ok(results)
-    }
-
-    /// GET a collection with eventual consistency header (for sign-in activity, etc.)
-    pub async fn get_all_eventual<T: DeserializeOwned>(&self, endpoint: &str) -> Result<Vec<T>> {
-        let mut results = Vec::new();
-        let mut url = Some(self.build_url(endpoint));
-
-        while let Some(current_url) = url {
-            let mut headers = HeaderMap::new();
-            headers.insert("ConsistencyLevel", HeaderValue::from_static("eventual"));
-
-            let response = self
-                .execute_with_retry_headers(&current_url, None, headers)
-                .await?;
-            let body = response.text().await?;
-
-            let page: GraphResponse<T> = serde_json::from_str(&body)?;
             results.extend(page.value);
             url = page.next_link;
         }
@@ -203,23 +181,157 @@ impl GraphClient {
         )
     }
 
-    /// Legacy wrapper - calls exo_invoke_cmdlet and extracts the result.
-    /// The `url` parameter is parsed to extract the resource name.
-    pub async fn exo_get_json(&self, url: &str) -> Result<serde_json::Value> {
-        // Extract tenant_id and resource from URL like:
-        // https://outlook.office365.com/adminapi/beta/{tenant}/ResourceName
-        let parts: Vec<&str> = url.rsplitn(2, '/').collect();
-        let resource = parts.first().unwrap_or(&"");
+    /// GET JSON from any Microsoft API that accepts a bearer token for `resource`
+    /// (Azure Resource Manager, SharePoint admin, Teams admin, Defender for Endpoint).
+    /// Error bodies in the Graph/ARM `{"error": {...}}` shape become `Err` with the code and message.
+    /// Prefer the Junction gateway (`crate::junction`) for catalogued APIs; use this for endpoints it doesn't carry.
+    pub async fn get_resource_json(
+        &self,
+        resource: Resource,
+        url: &str,
+    ) -> Result<serde_json::Value> {
+        self.resource_request(resource, url, None, HeaderMap::new())
+            .await
+    }
 
-        // Extract tenant_id from URL
-        let tenant_id = url
-            .split("/adminapi/")
-            .nth(1)
-            .and_then(|s| s.split('/').nth(1))
-            .unwrap_or("");
+    /// POST JSON to any Microsoft API that accepts a bearer token for `resource`.
+    pub async fn post_resource_json(
+        &self,
+        resource: Resource,
+        url: &str,
+        body: &serde_json::Value,
+    ) -> Result<serde_json::Value> {
+        self.resource_request(resource, url, Some(body), HeaderMap::new())
+            .await
+    }
 
-        let cmdlet_name = format!("Get-{}", resource);
-        self.exo_invoke_cmdlet(tenant_id, &cmdlet_name, None).await
+    /// Follow `@odata.nextLink` / `nextLink` paging on a resource API and return the concatenated `value` arrays.
+    pub async fn get_resource_all(
+        &self,
+        resource: Resource,
+        url: &str,
+    ) -> Result<Vec<serde_json::Value>> {
+        let mut out = Vec::new();
+        let mut next = Some(url.to_string());
+        let mut pages = 0;
+        while let Some(u) = next {
+            let page = self.get_resource_json(resource, &u).await?;
+            match page.get("value").and_then(|v| v.as_array()) {
+                Some(items) => out.extend(items.iter().cloned()),
+                None => match page.as_array() {
+                    Some(items) => out.extend(items.iter().cloned()),
+                    None => out.push(page.clone()),
+                },
+            }
+            next = page
+                .get("@odata.nextLink")
+                .or_else(|| page.get("nextLink"))
+                .and_then(|v| v.as_str())
+                .map(String::from);
+            pages += 1;
+            if pages > 500 {
+                anyhow::bail!("Paging did not terminate for {}", url);
+            }
+        }
+        Ok(out)
+    }
+
+    async fn resource_request(
+        &self,
+        resource: Resource,
+        url: &str,
+        body: Option<&serde_json::Value>,
+        extra_headers: HeaderMap,
+    ) -> Result<serde_json::Value> {
+        let _permit = self.semaphore.acquire().await?;
+        let mut last_error = None;
+        for attempt in 0..3 {
+            if attempt > 0 {
+                tokio::time::sleep(Duration::from_millis(1000 * 2u64.pow(attempt as u32))).await;
+            }
+            let token = self.auth.get_resource_token(resource).await?;
+            let mut headers = extra_headers.clone();
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", token))?,
+            );
+            if !headers.contains_key(CONTENT_TYPE) {
+                headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+            }
+            let request = match body {
+                Some(b) => self.http.post(url).headers(headers).json(b),
+                None => self.http.get(url).headers(headers),
+            };
+            match request.send().await {
+                Ok(resp) => {
+                    let status = resp.status();
+                    if status.as_u16() == 429 || status.is_server_error() {
+                        let retry_after = resp
+                            .headers()
+                            .get("Retry-After")
+                            .and_then(|v| v.to_str().ok())
+                            .and_then(|v| v.parse::<u64>().ok())
+                            .unwrap_or(5);
+                        tracing::warn!(
+                            "{} returned {} for {}; retrying in {}s",
+                            resource.display_name(),
+                            status,
+                            url,
+                            retry_after
+                        );
+                        tokio::time::sleep(Duration::from_secs(retry_after)).await;
+                        last_error = Some(anyhow::anyhow!("{} for {}", status, url));
+                        continue;
+                    }
+                    let text = resp.text().await?;
+                    if status.is_client_error() {
+                        let detail = serde_json::from_str::<serde_json::Value>(&text)
+                            .ok()
+                            .and_then(|v| {
+                                let e = v.get("error")?;
+                                let code = e.get("code").and_then(|c| c.as_str()).unwrap_or("");
+                                let msg = e
+                                    .get("message")
+                                    .and_then(|m| {
+                                        m.as_str().map(String::from).or_else(|| {
+                                            m.get("value")
+                                                .and_then(|x| x.as_str())
+                                                .map(String::from)
+                                        })
+                                    })
+                                    .unwrap_or_default();
+                                Some(format!("[{}] {}", code, msg))
+                            })
+                            .unwrap_or_else(|| text.chars().take(300).collect());
+                        anyhow::bail!(
+                            "{} error {} for {}: {}",
+                            resource.display_name(),
+                            status,
+                            url,
+                            detail
+                        );
+                    }
+                    if text.trim().is_empty() {
+                        return Ok(serde_json::Value::Null);
+                    }
+                    return serde_json::from_str(&text).map_err(|e| {
+                        anyhow::anyhow!(
+                            "JSON parse error from {} ({}): {}",
+                            resource.display_name(),
+                            url,
+                            e
+                        )
+                    });
+                }
+                Err(e) => last_error = Some(e.into()),
+            }
+        }
+        Err(last_error.unwrap_or_else(|| anyhow::anyhow!("Request to {} failed", url)))
+    }
+
+    /// The authentication manager behind this client (shared with the Junction gateway).
+    pub fn auth(&self) -> &AuthManager {
+        &self.auth
     }
 
     fn build_url(&self, endpoint: &str) -> String {

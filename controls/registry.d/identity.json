@@ -1,0 +1,702 @@
+{
+  "schemaVersion": "1.0",
+  "description": "Identity module overlay: new checks and corrected entries for ids whose base registry name no longer matches what the code tests. Overrides replace the base entry.",
+  "checks": [
+    {
+      "checkId": "CA-PHISHRES-002",
+      "name": "Ensure phishing-resistant MFA strength is required for all users",
+      "category": "PHISHRES",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML3-P7"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "CA-PAW-001",
+      "name": "Ensure privileged roles can sign in only from filtered or compliant devices (PAW)",
+      "category": "PAW",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.2.2.4"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        },
+        "essential-eight": {
+          "controlId": "ML2-P5"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "CA-DEVICE-003",
+      "name": "Ensure an app protection policy is required on iOS and Android",
+      "category": "DEVICE",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.2.2.9"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "ENTRA-AUTHMETHOD-005",
+      "name": "Ensure the authentication methods policy migration is complete",
+      "category": "AUTHMETHOD",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.2.3.5"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P7;ML2-P7"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ENTAPP-022",
+      "name": "High-privilege service principals without an owner or without a sign-in in 90 days",
+      "category": "ENTAPP",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05;ID.AM-02"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-APPREG-005",
+      "name": "Ensure app registrations with high-impact application permissions do not use client secrets",
+      "category": "APPREG",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.1.5.3;5.1.5.4"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-01"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-APPREG-006",
+      "name": "Ensure the default app management policy restricts password credentials",
+      "category": "APPREG",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.1.5.6"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-01"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-XTAP-001",
+      "name": "Ensure default inbound cross-tenant B2B collaboration is restricted",
+      "category": "GUEST",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.1.6.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-HYBRID-003",
+      "name": "Ensure all verified domains use managed authentication with password hash sync",
+      "category": "HYBRID",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "5.1.8.1"
+        },
+        "cis-m365-v7": {
+          "controlId": "5.1.8.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-DAP-001",
+      "name": "Ensure no partner holds directory roles through legacy delegated admin privileges (DAP)",
+      "category": "DAP",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "GV.SC-07"
+        }
+      }
+    },
+    {
+      "checkId": "CA-MFA-ALL-001",
+      "name": "Ensure multifactor authentication is required for all users and all resources",
+      "category": "MFA-ALL",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Critical"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "5.2.2.2"
+        },
+        "cis-m365-v7": {
+          "controlId": "5.2.2.2;5.1.2.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P7;ML2-P7"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "CA-LEGACYAUTH-001",
+      "name": "Ensure Conditional Access blocks legacy authentication for all users",
+      "category": "LEGACYAUTH",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Critical"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "5.2.2.3"
+        },
+        "cis-m365-v7": {
+          "controlId": "5.2.2.3"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P7;ML2-P7"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "CA-MFA-ADMIN-001",
+      "name": "Ensure administrative roles require phishing-resistant MFA (plain MFA is partial)",
+      "category": "MFA-ADMIN",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "5.2.2.1"
+        },
+        "cis-m365-v7": {
+          "controlId": "5.2.2.1;5.2.2.5"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML2-P7"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "CA-EXCLUSION-001",
+      "name": "Ensure Conditional Access exclusions are limited to emergency access and documented groups",
+      "category": "CAEXCLUSION",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "CA-ROLECOVERAGE-001",
+      "name": "Ensure every Tier-0 and Tier-1 role is covered by an MFA Conditional Access policy",
+      "category": "ROLECOVERAGE",
+      "collector": "CAEvaluator",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.2.2.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P7;ML2-P7"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "ENTRA-CONSENT-001",
+      "name": "Ensure user consent to apps accessing company data on their behalf is not allowed",
+      "category": "CONSENT",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Critical"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "5.1.5.1"
+        },
+        "cis-m365-v7": {
+          "controlId": "5.1.5.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-BREAKGLASS-001",
+      "name": "Ensure two cloud-only emergency access accounts use FIDO2 or certificate authentication",
+      "category": "BREAKGLASS",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Critical"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "1.1.4"
+        },
+        "cis-m365-v7": {
+          "controlId": "1.1.2"
+        },
+        "nist-csf": {
+          "controlId": "PR.IR-03"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-CLOUDADMIN-001",
+      "name": "Ensure administrative accounts are cloud-only",
+      "category": "CLOUDADMIN",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "1.1.1"
+        },
+        "cis-m365-v7": {
+          "controlId": "1.1.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P5"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ADMIN-002",
+      "name": "Privileged role inventory",
+      "category": "ADMIN",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Info"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ADMIN-003",
+      "name": "Ensure admin accounts are dedicated (no account holds 3 or more privileged roles)",
+      "category": "ADMIN",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "1.1.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P5"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ADMIN-004",
+      "name": "Ensure privileged accounts inactive for 45 days are removed",
+      "category": "ADMIN",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.3.3"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P5"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-CA-001",
+      "name": "Ensure at least one enabled Conditional Access policy requires MFA",
+      "category": "CA",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.2.2.2"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "ENTRA-CA-002",
+      "name": "Ensure at least one enabled Conditional Access policy targets All users",
+      "category": "CA",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.2.2.2"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "ENTRA-CA-003",
+      "name": "Ensure no enabled Conditional Access policy has more than 5 exclusions",
+      "category": "CA",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      },
+      "licensing": {
+        "minimum": "E3"
+      }
+    },
+    {
+      "checkId": "ENTRA-APPREG-001",
+      "name": "App registration inventory",
+      "category": "APPREG",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Info"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "ID.AM-02"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-APPREG-002",
+      "name": "Ensure app registration secrets and certificates are not expired",
+      "category": "APPREG",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-01"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-APPREG-003",
+      "name": "App registrations requesting more than 10 Microsoft Graph permissions",
+      "category": "APPREG",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Low"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ENTAPP-001",
+      "name": "Enterprise application inventory",
+      "category": "ENTAPP",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Info"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "ID.AM-02"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ENTAPP-002",
+      "name": "Disabled enterprise applications still present",
+      "category": "ENTAPP",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Low"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "ID.AM-02"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ENTAPP-003",
+      "name": "Third-party enterprise applications without 'Assignment required'",
+      "category": "ENTAPP",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Low"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ENTAPP-004",
+      "name": "Third-party applications granted high-impact permissions",
+      "category": "ENTAPP",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05;ID.AM-02"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-ENTAPP-005",
+      "name": "Service principals carrying password credentials",
+      "category": "ENTAPP",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-01"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-PASSWORD-001",
+      "name": "Ensure a passwordless authentication method is enabled",
+      "category": "PASSWORD",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P7;ML2-P7"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-GUEST-003",
+      "name": "Ensure email-verified users cannot self-join the organisation",
+      "category": "GUEST",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      }
+    },
+    {
+      "checkId": "ENTRA-PIM-006",
+      "name": "Ensure Tier-0 role activation is limited to 8 hours or less",
+      "category": "PIM",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.3.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        },
+        "essential-eight": {
+          "controlId": "ML2-P5"
+        }
+      },
+      "licensing": {
+        "minimum": "E5"
+      }
+    },
+    {
+      "checkId": "ENTRA-SECDEFAULT-001",
+      "name": "Ensure Security Defaults are enabled or replaced by an all-users MFA policy",
+      "category": "SECDEFAULT",
+      "collector": "Entra",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.1.2.1"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-03"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P7;ML2-P7"
+        }
+      }
+    }
+  ]
+}

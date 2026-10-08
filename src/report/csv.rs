@@ -18,6 +18,10 @@ pub fn generate_csv_report(path: &Path, findings: &[Finding]) -> Result<()> {
         "Current Value",
         "Expected Value",
         "Remediation",
+        "CIS M365 v7",
+        "CIS M365 v6",
+        "NIST CSF 2.0",
+        "Essential Eight",
         "Timestamp",
     ])?;
 
@@ -33,6 +37,10 @@ pub fn generate_csv_report(path: &Path, findings: &[Finding]) -> Result<()> {
             &f.current_value,
             &f.expected_value,
             &f.remediation,
+            &f.framework_mappings.cis_v7.join("; "),
+            &f.framework_mappings.cis.join("; "),
+            &f.framework_mappings.nist_csf.join("; "),
+            &f.framework_mappings.essential_eight.join("; "),
             &f.timestamp.to_rfc3339(),
         ])?;
     }
@@ -71,6 +79,12 @@ pub fn generate_section_csvs(
         ("Forms", "21c"),
         ("Power BI", "22"),
         ("Hybrid", "23"),
+        ("Azure", "24"),
+        ("Logging", "25"),
+        ("Backup", "26"),
+        ("Defender for Endpoint", "13b"),
+        ("Authentication Methods", "03"),
+        ("Privileged Access", "04"),
         ("Purview", "19c"),
         ("SOC 2", "33"),
         ("Inventory", "28"),

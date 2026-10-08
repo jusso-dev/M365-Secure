@@ -109,14 +109,65 @@ pub const GRAPH_SCOPES: &[&str] = &[
     "Reports.Read.All",
     "Sites.Read.All",
     "SecurityAlert.Read.All",
+    // Needed by the Purview, PIM, access review, enrolment and backup checks.
+    "InformationProtectionPolicy.Read.All",
+    "RecordsManagement.Read.All",
+    "DeviceManagementServiceConfig.Read.All",
+    "AccessReview.Read.All",
+    "RoleManagementPolicy.Read.Directory",
+    "RoleEligibilitySchedule.Read.Directory",
+    "RoleAssignmentSchedule.Read.Directory",
+    "OnPremDirectorySynchronization.Read.All",
+    "CrossTenantInformation.ReadBasic.All",
+    "Policy.Read.ConditionalAccess",
+    "IdentityRiskyUser.Read.All",
+    "Group.Read.All",
+    "SecurityIdentitiesSensors.Read.All",
+    "SecurityIdentitiesHealth.Read.All",
+    "BackupRestore-Configuration.Read.All",
+    "AuditLogsQuery.Read.All",
+    "ThreatHunting.Read.All",
+    "CustomDetection.Read.All",
 ];
+
+/// Resources other than Microsoft Graph that some checks read. Tokens for these are acquired with the
+/// Graph refresh token, so the signed-in app must be consented for the resource (device-code sign-in with
+/// a first-party app covers Exchange; Azure, SharePoint admin, Teams and Defender for Endpoint usually
+/// need a tenant-owned app registration, see README "Beyond Graph").
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Resource {
+    Graph,
+    ExchangeOnline,
+    AzureResourceManager,
+    SharePointAdmin,
+    TeamsAdmin,
+    DefenderForEndpoint,
+    PowerPlatform,
+}
+
+impl Resource {
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Resource::Graph => "Microsoft Graph",
+            Resource::ExchangeOnline => "Exchange Online admin API",
+            Resource::AzureResourceManager => "Azure Resource Manager",
+            Resource::SharePointAdmin => "SharePoint Online admin",
+            Resource::TeamsAdmin => "Teams admin (Skype.Policy)",
+            Resource::DefenderForEndpoint => "Defender for Endpoint API",
+            Resource::PowerPlatform => "Power Platform API",
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct AuthManager {
     config: AuthConfig,
     token: Arc<RwLock<Option<TokenInfo>>>,
-    exo_token: Arc<RwLock<Option<TokenInfo>>>,
+    /// Tokens for non-Graph resources, keyed by the scope string they were issued for.
+    resource_tokens: Arc<RwLock<std::collections::HashMap<String, TokenInfo>>>,
     cache: token_cache::TokenCache,
+    /// SharePoint tenant name (the part before `.sharepoint.com`), learned from the default domain at scan time.
+    sharepoint_tenant: Arc<RwLock<Option<String>>>,
 }
 
 impl AuthManager {
@@ -125,8 +176,9 @@ impl AuthManager {
         Self {
             config,
             token: Arc::new(RwLock::new(None)),
-            exo_token: Arc::new(RwLock::new(None)),
+            resource_tokens: Arc::new(RwLock::new(std::collections::HashMap::new())),
             cache,
+            sharepoint_tenant: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -210,65 +262,127 @@ impl AuthManager {
         Ok(())
     }
 
-    /// Get an Exchange Online token (for outlook.office365.com admin API).
-    /// Uses the refresh token from the Graph login to acquire a token scoped to EXO.
-    pub async fn get_exo_token(&self) -> Result<String> {
-        // Check if we already have a valid EXO token
+    /// Record the SharePoint tenant name (e.g. `contoso` for contoso.sharepoint.com) so SharePoint admin
+    /// tokens can be requested. Called by the engine once tenant information is known.
+    pub async fn set_sharepoint_tenant(&self, tenant: &str) {
+        let mut t = self.sharepoint_tenant.write().await;
+        *t = Some(tenant.to_string());
+    }
+
+    /// The OAuth scope used to request a token for a resource in the configured cloud.
+    pub async fn scope_for(&self, resource: Resource) -> Result<String> {
+        let commercial = self.config.cloud_environment == CloudEnvironment::Commercial;
+        Ok(match resource {
+            Resource::Graph => self.config.cloud_environment.graph_scope().to_string(),
+            Resource::ExchangeOnline => if commercial {
+                "https://outlook.office365.com/.default"
+            } else {
+                "https://outlook.office365.us/.default"
+            }
+            .to_string(),
+            Resource::AzureResourceManager => if commercial {
+                "https://management.azure.com/.default"
+            } else {
+                "https://management.usgovcloudapi.net/.default"
+            }
+            .to_string(),
+            Resource::SharePointAdmin => {
+                let tenant = self.sharepoint_tenant.read().await.clone().ok_or_else(|| {
+                    anyhow::anyhow!("SharePoint tenant name not known yet; tenant information must be collected first")
+                })?;
+                let suffix = if commercial {
+                    "sharepoint.com"
+                } else {
+                    "sharepoint.us"
+                };
+                format!("https://{}-admin.{}/.default", tenant, suffix)
+            }
+            // The Teams admin backend used by the Teams PowerShell module. Undocumented, so checks that use it
+            // must degrade to Unknown when it refuses the app.
+            Resource::TeamsAdmin => "48ac35b8-9aa8-4d74-927d-1f4a14a0b239/.default".to_string(),
+            Resource::DefenderForEndpoint => if commercial {
+                "https://api.securitycenter.microsoft.com/.default"
+            } else {
+                "https://api-gcc.securitycenter.microsoft.us/.default"
+            }
+            .to_string(),
+            Resource::PowerPlatform => "https://api.powerplatform.com/.default".to_string(),
+        })
+    }
+
+    /// Get an access token for a non-Graph resource, exchanging the Graph refresh token for it.
+    /// Errors name the resource and, for consent failures, say what to do.
+    pub async fn get_resource_token(&self, resource: Resource) -> Result<String> {
+        Ok(self.get_resource_token_info(resource).await?.access_token)
+    }
+
+    /// Like [`get_resource_token`](Self::get_resource_token) but with expiry and scope, for callers that
+    /// hand the token to another runtime (the Junction gateway).
+    pub async fn get_resource_token_info(&self, resource: Resource) -> Result<TokenInfo> {
+        if resource == Resource::Graph {
+            self.get_token().await?;
+            let token = self.token.read().await;
+            return token
+                .clone()
+                .ok_or_else(|| anyhow::anyhow!("Not authenticated"));
+        }
+        let scope = self.scope_for(resource).await?;
         {
-            let token = self.exo_token.read().await;
-            if let Some(t) = &*token {
+            let tokens = self.resource_tokens.read().await;
+            if let Some(t) = tokens.get(&scope) {
                 if !t.is_expired() {
-                    return Ok(t.access_token.clone());
+                    return Ok(t.clone());
                 }
             }
         }
-
-        // Acquire a new EXO token using the Graph refresh token
         let refresh = {
             let token = self.token.read().await;
-            match &*token {
-                Some(t) => t.refresh_token.clone(),
-                None => None,
-            }
+            token.as_ref().and_then(|t| t.refresh_token.clone())
         };
-
-        if let Some(refresh_token) = refresh {
-            let exo_token = self.acquire_exo_token(&refresh_token).await?;
-            let access = exo_token.access_token.clone();
-            let mut token = self.exo_token.write().await;
-            *token = Some(exo_token);
-            return Ok(access);
-        }
-
-        anyhow::bail!(
-            "No refresh token available to acquire Exchange Online token. \
-             Re-run `m365-assess auth login` with device code flow."
-        )
+        let Some(refresh_token) = refresh else {
+            anyhow::bail!(
+                "No refresh token available to acquire a {} token. Sign in with the device code flow,                  or use client credentials with an app consented for this resource.",
+                resource.display_name()
+            )
+        };
+        let token = self
+            .acquire_resource_token(&refresh_token, &scope, resource)
+            .await?;
+        self.resource_tokens
+            .write()
+            .await
+            .insert(scope, token.clone());
+        Ok(token)
     }
 
-    async fn acquire_exo_token(&self, refresh_token: &str) -> Result<TokenInfo> {
+    pub fn tenant_id(&self) -> &str {
+        &self.config.tenant_id
+    }
+
+    /// Kept for existing callers; prefer `get_resource_token(Resource::ExchangeOnline)`.
+    pub async fn get_exo_token(&self) -> Result<String> {
+        self.get_resource_token(Resource::ExchangeOnline).await
+    }
+
+    async fn acquire_resource_token(
+        &self,
+        refresh_token: &str,
+        scope: &str,
+        resource: Resource,
+    ) -> Result<TokenInfo> {
         let client = reqwest::Client::new();
         let token_url = format!(
             "{}/{}/oauth2/v2.0/token",
             self.config.cloud_environment.login_endpoint(),
             self.config.tenant_id
         );
-
-        let exo_scope = match self.config.cloud_environment {
-            CloudEnvironment::Commercial => "https://outlook.office365.com/.default",
-            CloudEnvironment::GccHigh => "https://outlook.office365.us/.default",
-            CloudEnvironment::Dod => "https://outlook.office365.us/.default",
-        };
-
         let params = [
             ("client_id", self.config.client_id.as_str()),
             ("grant_type", "refresh_token"),
             ("refresh_token", refresh_token),
-            ("scope", exo_scope),
+            ("scope", scope),
         ];
-
         let resp = client.post(&token_url).form(&params).send().await?;
-
         let body: serde_json::Value = resp.json().await?;
 
         if let Some(error) = body.get("error") {
@@ -276,15 +390,33 @@ impl AuthManager {
                 .get("error_description")
                 .and_then(|v| v.as_str())
                 .unwrap_or("Unknown error");
-            anyhow::bail!("Exchange token acquisition failed: {} - {}", error, desc);
+            let hint = if desc.contains("AADSTS65001")
+                || desc.contains("AADSTS650057")
+                || desc.contains("AADSTS70011")
+            {
+                format!(
+                    " The signed-in app isn't consented for {}. Register an app with that API permission and pass                      --client-id, or skip the module.",
+                    resource.display_name()
+                )
+            } else {
+                String::new()
+            };
+            anyhow::bail!(
+                "{} token acquisition failed: {} - {}{}",
+                resource.display_name(),
+                error,
+                desc,
+                hint
+            );
         }
 
-        tracing::info!("Acquired Exchange Online token");
-
+        tracing::info!("Acquired {} token", resource.display_name());
         Ok(TokenInfo {
             access_token: body["access_token"]
                 .as_str()
-                .ok_or_else(|| anyhow::anyhow!("No access_token in EXO response"))?
+                .ok_or_else(|| {
+                    anyhow::anyhow!("No access_token in {} response", resource.display_name())
+                })?
                 .to_string(),
             refresh_token: body
                 .get("refresh_token")
@@ -293,7 +425,7 @@ impl AuthManager {
             expires_at: Utc::now()
                 + chrono::Duration::seconds(body["expires_in"].as_i64().unwrap_or(3600)),
             tenant_id: self.config.tenant_id.clone(),
-            scopes: vec!["https://outlook.office365.com/.default".to_string()],
+            scopes: vec![scope.to_string()],
         })
     }
 

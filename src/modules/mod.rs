@@ -1,3 +1,4 @@
+pub mod azure;
 pub mod collaboration;
 pub mod exchange;
 pub mod hybrid;
@@ -64,4 +65,49 @@ pub trait AssessmentModule: Send + Sync {
         tenant: &TenantInfo,
         registry: &ControlRegistry,
     ) -> Result<ModuleResult>;
+}
+
+/// Record a check's outcome. On error the check still appears, as `Unknown` with the reason, so a
+/// permission problem or an unsupported API is visible in the report instead of silently dropping the check.
+pub fn record(
+    findings: &mut Vec<Finding>,
+    result: Result<Vec<Finding>>,
+    check_id: &str,
+    category: &str,
+    section: &str,
+    setting: &str,
+) {
+    match result {
+        Ok(f) => findings.extend(f),
+        Err(e) => {
+            tracing::warn!("{check_id} could not run: {e}");
+            findings.push(Finding::unknown(
+                check_id,
+                category,
+                section,
+                setting,
+                "The check did not complete.",
+                e,
+            ));
+        }
+    }
+}
+
+/// Single-finding variant of [`record`].
+pub fn record_one(
+    findings: &mut Vec<Finding>,
+    result: Result<Finding>,
+    check_id: &str,
+    category: &str,
+    section: &str,
+    setting: &str,
+) {
+    record(
+        findings,
+        result.map(|f| vec![f]),
+        check_id,
+        category,
+        section,
+        setting,
+    );
 }

@@ -27,8 +27,8 @@ pub fn print_banner() {
     println!(
         "  {} {}",
         "M365 Security Assessment Tool".bright_white().bold(),
-        "v1.0.0".dimmed()
+        format!("v{}", env!("CARGO_PKG_VERSION")).dimmed()
     );
-    println!("  {}", "Rust CLI - macOS Edition".dimmed());
+    println!("  {}", "Read-only tenant assessment".dimmed());
     println!();
 }

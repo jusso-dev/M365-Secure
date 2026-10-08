@@ -1,0 +1,29 @@
+{
+  "frameworkId": "cis-m365-v7",
+  "label": "CIS Microsoft 365 v7.0.0",
+  "version": "7.0.0",
+  "description": "Center for Internet Security benchmark for Microsoft 365 tenant configuration, v7.0.0 (May 2026). Recommendation numbers come from the registry's cis-m365-v7 keys; numbers shared with v6 were verified against the published v7 titles, the rest are carried over from v6 numbering.",
+  "css": "fw-cis",
+  "displayOrder": 1,
+  "scoring": {
+    "method": "profile-compliance",
+    "profiles": {
+      "E3-L1": { "label": "CIS E3 Level 1", "css": "fw-cis", "profileKey": "E3-L1" },
+      "E3-L2": { "label": "CIS E3 Level 2", "css": "fw-cis-l2", "profileKey": "E3-L2" },
+      "E5-L1": { "label": "CIS E5 Level 1", "css": "fw-cis", "profileKey": "E5-L1" },
+      "E5-L2": { "label": "CIS E5 Level 2", "css": "fw-cis-l2", "profileKey": "E5-L2" }
+    }
+  },
+  "groupBy": "section-prefix",
+  "sections": {
+    "1": "Microsoft 365 admin center",
+    "2": "Microsoft 365 Defender",
+    "3": "Microsoft Purview",
+    "4": "Microsoft Intune admin center",
+    "5": "Microsoft Entra admin center",
+    "6": "Exchange admin center",
+    "7": "SharePoint admin center",
+    "8": "Microsoft Teams admin center",
+    "9": "Microsoft Fabric"
+  }
+}

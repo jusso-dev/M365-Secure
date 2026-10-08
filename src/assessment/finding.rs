@@ -168,12 +168,20 @@ impl FindingBuilder {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct FrameworkMappings {
+    /// CIS Microsoft 365 Foundations Benchmark v6 recommendation numbers.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub cis: Vec<String>,
+    /// CIS Microsoft 365 Foundations Benchmark v7 recommendation numbers.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub cis_v7: Vec<String>,
+    /// NIST SP 800-53 Rev 5 control ids.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub nist: Vec<String>,
+    /// NIST Cybersecurity Framework 2.0 subcategory ids.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub nist_csf: Vec<String>,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub iso27001: Vec<String>,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
@@ -192,4 +200,79 @@ pub struct FrameworkMappings {
     pub essential_eight: Vec<String>,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub mitre_attack: Vec<String>,
+    /// Any other framework in the registry, keyed by its registry key (e.g. `nis2`, `iso-27017`).
+    #[serde(skip_serializing_if = "std::collections::BTreeMap::is_empty", default)]
+    pub other: std::collections::BTreeMap<String, Vec<String>>,
+}
+
+impl FrameworkMappings {
+    pub fn is_empty(&self) -> bool {
+        *self == FrameworkMappings::default()
+    }
+
+    /// Add refs under a registry framework key. Registry `controlId` strings are `;`-separated.
+    pub fn add(&mut self, framework_key: &str, control_ids: &str) {
+        let ids: Vec<String> = control_ids
+            .split(';')
+            .map(|x| x.trim().to_string())
+            .filter(|x| !x.is_empty())
+            .collect();
+        if ids.is_empty() {
+            return;
+        }
+        let target = match framework_key {
+            "cis-m365-v6" | "cis" => &mut self.cis,
+            "cis-m365-v7" => &mut self.cis_v7,
+            "nist-800-53" | "nist" => &mut self.nist,
+            "nist-csf" => &mut self.nist_csf,
+            "iso-27001" => &mut self.iso27001,
+            "soc2" | "soc2-tsc" => &mut self.soc2,
+            "hipaa" => &mut self.hipaa,
+            "pci-dss" | "pci-dss-v4" => &mut self.pci_dss,
+            "cmmc" => &mut self.cmmc,
+            "cisa-scuba" => &mut self.cisa_scuba,
+            "fedramp" => &mut self.fedramp,
+            "essential-eight" => &mut self.essential_eight,
+            "mitre-attack" => &mut self.mitre_attack,
+            other => self.other.entry(other.to_string()).or_default(),
+        };
+        for id in ids {
+            if !target.contains(&id) {
+                target.push(id);
+            }
+        }
+    }
+}
+
+impl Finding {
+    /// A finding for a check that could not run (API error, missing permission, unsupported API).
+    /// Checks must emit this rather than disappearing: a missing result hides a gap.
+    pub fn unknown(
+        check_id: impl Into<String>,
+        category: impl Into<String>,
+        section: impl Into<String>,
+        setting: impl Into<String>,
+        description: impl Into<String>,
+        error: impl std::fmt::Display,
+    ) -> Finding {
+        let err = error.to_string();
+        let advice = if err.contains("Authorization_RequestDenied")
+            || err.contains("AADSTS65001")
+            || err.contains("Forbidden")
+            || err.contains(" 403")
+            || err.contains("consented")
+        {
+            " Grant the permission listed in the README and run the scan again."
+        } else {
+            ""
+        };
+        Finding::new(check_id, category, section, setting, description)
+            .status(FindingStatus::Unknown)
+            .current_value(format!("Could not evaluate: {}{}", err, advice))
+            .expected_value("Check could not run")
+            .remediation(
+                "Resolve the error above and re-run. The control is unassessed, not failing.",
+            )
+            .build()
+    }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "m365-assess"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 authors = ["Justin Middler"]
 description = "Microsoft 365 Security Assessment CLI - Rust port of M365-Assess"
@@ -89,7 +89,21 @@ regex = "1"
 # XLSX output
 xlsxwriter = "0.6"
 
+# Junction: Microsoft API operation catalogue + read-only execution runtime (ARM, Resource Graph,
+# Defender for Cloud, Sentinel, Defender for Endpoint). Pinned to a commit; bump deliberately.
+junction-core = { git = "https://github.com/jusso-dev/junction", rev = "25dce87" }
+junction-registry = { git = "https://github.com/jusso-dev/junction", rev = "25dce87" }
+junction-runtime = { git = "https://github.com/jusso-dev/junction", rev = "25dce87" }
+junction-auth = { git = "https://github.com/jusso-dev/junction", rev = "25dce87" }
+junction-policy = { git = "https://github.com/jusso-dev/junction", rev = "25dce87" }
+junction-http = { git = "https://github.com/jusso-dev/junction", rev = "25dce87" }
+
 [profile.release]
 opt-level = 3
 lto = true
 strip = true
+
+[dev-dependencies]
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

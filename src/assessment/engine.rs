@@ -37,6 +37,15 @@ pub struct LicenseSku {
 }
 
 impl TenantInfo {
+    /// The `<name>` in `<name>.onmicrosoft.com`, which is also the SharePoint tenant name.
+    pub fn sharepoint_tenant_name(&self) -> Option<String> {
+        self.verified_domains
+            .iter()
+            .find(|d| d.ends_with(".onmicrosoft.com") && !d.ends_with(".mail.onmicrosoft.com"))
+            .and_then(|d| d.strip_suffix(".onmicrosoft.com"))
+            .map(|s| s.to_string())
+    }
+
     pub fn has_service_plan(&self, plan: &str) -> bool {
         self.license_skus.iter().any(|sku| {
             sku.service_plans
@@ -102,6 +111,9 @@ impl AssessmentEngine {
             let mut ti = self.tenant_info.write().await;
             *ti = Some(tenant_info.clone());
         }
+        if let Some(sp_tenant) = tenant_info.sharepoint_tenant_name() {
+            self.graph.auth().set_sharepoint_tenant(&sp_tenant).await;
+        }
 
         // Step 2: Build module list
         let modules = self.build_module_list(config);
@@ -118,7 +130,14 @@ impl AssessmentEngine {
             );
 
             match module.run(&self.graph, &tenant_info, &self.registry).await {
-                Ok(result) => {
+                Ok(mut result) => {
+                    // Modules describe what they found; the registry says which framework controls that
+                    // evidences and how severe a gap is. Attach both here so every module gets them.
+                    for f in result.findings.iter_mut() {
+                        if f.framework_mappings.is_empty() {
+                            f.framework_mappings = self.registry.mappings(&f.check_id);
+                        }
+                    }
                     let pass_count = result
                         .findings
                         .iter()
@@ -303,6 +322,7 @@ impl AssessmentEngine {
             "collaboration",
             "intune",
             "hybrid",
+            "azure",
         ];
 
         let modules_to_run = if config.modules.is_empty() {
@@ -328,6 +348,7 @@ impl AssessmentEngine {
                 }
                 "intune" | "devices" => module_list.push(Box::new(modules::intune::IntuneModule)),
                 "hybrid" => module_list.push(Box::new(modules::hybrid::HybridModule)),
+                "azure" | "arm" => module_list.push(Box::new(modules::azure::AzureModule)),
                 "powerbi" => module_list.push(Box::new(modules::powerbi::PowerBIModule)),
                 "purview" => module_list.push(Box::new(modules::purview::PurviewModule)),
                 "inventory" => module_list.push(Box::new(modules::inventory::InventoryModule)),

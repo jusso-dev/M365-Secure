@@ -14,6 +14,17 @@ pub struct ComplianceFramework {
     pub scoring_method: String,
     #[serde(default)]
     pub controls: Vec<FrameworkControl>,
+    /// Top-level section names keyed by their number prefix (e.g. "5" -> "Microsoft Entra admin center").
+    #[serde(default)]
+    pub sections: HashMap<String, String>,
+}
+
+impl ComplianceFramework {
+    /// Section name for a control id, by its leading number (`5.2.2.2` -> section "5").
+    pub fn section_for(&self, control_id: &str) -> String {
+        let prefix = control_id.split(['.', '-']).next().unwrap_or("");
+        self.sections.get(prefix).cloned().unwrap_or_default()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +50,7 @@ impl FrameworkLibrary {
 
         let framework_files = vec![
             ("cis-m365-v6", "CIS Microsoft 365 Foundations Benchmark v6"),
+            ("cis-m365-v7", "CIS Microsoft 365 Foundations Benchmark v7"),
             ("nist-800-53-r5", "NIST 800-53 Rev 5"),
             ("nist-csf", "NIST CSF 2.0"),
             ("iso-27001", "ISO 27001:2022"),
@@ -80,6 +92,17 @@ impl FrameworkLibrary {
                                     .unwrap_or("coverage-mapping")
                                     .to_string(),
                                 controls: extract_controls(&json),
+                                sections: json
+                                    .get("sections")
+                                    .and_then(|s| s.as_object())
+                                    .map(|o| {
+                                        o.iter()
+                                            .filter_map(|(k, v)| {
+                                                v.as_str().map(|n| (k.clone(), n.to_string()))
+                                            })
+                                            .collect()
+                                    })
+                                    .unwrap_or_default(),
                             };
                             frameworks.insert(file_id.to_string(), framework);
                         }

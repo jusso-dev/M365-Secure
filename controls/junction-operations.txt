@@ -1,0 +1,25 @@
+# Junction catalogue operations embedded in m365-assess (see scripts/junction-catalog.py).
+# One canonical operation id per line. Keep this list to what the modules call.
+
+# Azure management plane (module: azure)
+azure.resource_graph.resources.post
+azure.resources.resource_groups.list
+azure.key_vault.vaults.list_by_subscription
+azure.storage.storage_accounts.list
+defender.cloud.pricings.list
+defender.cloud.assessments.list
+defender.cloud.secure_scores.list
+defender.cloud.secure_score_controls.list
+sentinel.securityinsights.alert_rules.list
+sentinel.securityinsights.data_connectors.list
+sentinel.securityinsights.incidents.list
+
+# Defender for Endpoint (module: intune)
+defender.endpoint.machines.list
+defender.endpoint.configuration_score.list
+defender.endpoint.exposure_score.list
+defender.endpoint.advancedqueries.run
+defender.endpoint.machines.list_secure_configurations_assessment_export
+
+# Power Platform governance (module: azure)
+power_platform.governance.rule_based_policies.list_rule_based_policies

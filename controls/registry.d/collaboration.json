@@ -1,0 +1,179 @@
+{
+  "checks": [
+    {
+      "checkId": "SPO-SHARING-009",
+      "name": "Ensure Anyone links expire within 30 days and are view-only",
+      "category": "SHARING",
+      "collector": "SharePoint",
+      "hasAutomatedCheck": true,
+      "licensing": {
+        "minimum": "E3"
+      },
+      "frameworks": {
+        "cis-controls-v8": {
+          "controlId": "12.5;6.1;6.2"
+        },
+        "cmmc": {
+          "controlId": "AC.L1-B.1.I;AC.L1-B.1.II;AC.L2-3.1.1;AC.L2-3.1.2"
+        },
+        "fedramp": {
+          "controlId": "AC-2;AC-3;AC-6;IA-8;SI-10"
+        },
+        "hipaa": {
+          "controlId": "164.308(a)(3)(ii)(C);164.312(a)(2)(ii);3.L.A;3.L.B;3.M.A;3.M.B;3.S.A;5.L.B;6.L.A;6.L.E;6.M.A;9.M.B"
+        },
+        "iso-27001": {
+          "controlId": "5.15;5.16;5.18"
+        },
+        "iso-27017": {
+          "controlId": "9.2.1;9.2.2;9.2.5;9.2.6;9.4"
+        },
+        "mitre-attack": {
+          "controlId": "T1003;T1003.001;T1003.002;T1003.003;T1003.004;T1003.005;T1003.006;T1003.007;T1003.008;T1005;T1021;T1021.001;T1021.002;T1021.003;T1021.004;T1021.005;T1021.006;T1025;T1036;T1036.003;T1036.005;T1037;T1037.002;T1037.003;T1037.004;T1037.005;T1041;T1047;T1048;T1048.001;T1048.002;T1048.003;T1052;T1052.001;T1053;T1053.001;T1053.002;T1053.003;T1053.005;T1053.006;T1053.007;T1055;T1055.008;T1055.009;T1056.003;T1059;T1059.001;T1059.002;T1059.003;T1059.004;T1059.005;T1059.006;T1059.007;T1059.008;T1068;T1070;T1070.001;T1070.002;T1070.003;T1071.004;T1072;T1078;T1078.001;T1078.002;T1078.003;T1078.004;T1080;T1087.004;T1090;T1090.003;T1091;T1095;T1098;T1098.001;T1098.002;T1098.003;T1098.004;T1110;T1110.001;T1110.002;T1110.003;T1110.004;T1114;T1114.002;T1127;T1129;T1133;T1134;T1134.001;T1134.002;T1134.003;T1134.005;T1136;T1136.001;T1136.002;T1136.003;T1176;T1185;T1187;T1190;T1197;T1199;T1200;T1204;T1204.002;T1205;T1205.001;T1210;T1212;T1213;T1213.001;T1213.002;T1213.003;T1216;T1216.001;T1218;T1218.001;T1218.002;T1218.003;T1218.004;T1218.005;T1218.007;T1218.008;T1218.009;T1218.010;T1218.011;T1218.012;T1218.013;T1218.014;T1219;T1220;T1221;T1222;T1222.001;T1222.002;T1484;T1485;T1486;T1489;T1490;T1491;T1491.001;T1491.002;T1495;T1498;T1498.001;T1498.002;T1499;T1499.001;T1499.002;T1499.003;T1499.004;T1505;T1505.002;T1505.003;T1505.004;T1525;T1528;T1530;T1537;T1538;T1539;T1542;T1542.001;T1542.003;T1542.004;T1542.005;T1543;T1543.001;T1543.002;T1543.003;T1543.004;T1546.002;T1546.003;T1546.004;T1546.006;T1546.008;T1546.009;T1546.010;T1546.013;T1547.003;T1547.004;T1547.006;T1547.007;T1547.009;T1547.011;T1547.012;T1547.013;T1548;T1548.002;T1548.003;T1550;T1550.002;T1550.003;T1552;T1552.001;T1552.002;T1552.004;T1552.005;T1552.006;T1552.007;T1553;T1553.001;T1553.003;T1553.005;T1556;T1556.001;T1556.003;T1556.004;T1557;T1557.001;T1557.002;T1558;T1558.001;T1558.002;T1558.003;T1558.004;T1559;T1559.001;T1561;T1561.001;T1561.002;T1562;T1562.001;T1562.002;T1562.004;T1562.006;T1562.007;T1562.008;T1562.009;T1563;T1563.001;T1563.002;T1564.003;T1564.004;T1564.006;T1564.009;T1565;T1565.001;T1565.003;T1567;T1569;T1569.001;T1569.002;T1570;T1572;T1574;T1574.001;T1574.004;T1574.005;T1574.006;T1574.007;T1574.008;T1574.009;T1574.010;T1574.012;T1578;T1578.001;T1578.002;T1578.003;T1580;T1599;T1599.001;T1601;T1601.001;T1601.002;T1602;T1602.001;T1602.002;T1606;T1606.001;T1606.002;T1609;T1610;T1611;T1612;T1613;T1619"
+        },
+        "nist-800-171": {
+          "controlId": "3.1.1;3.1.2"
+        },
+        "nist-800-53": {
+          "controlId": "AC-2;AC-3;AC-5;AC-6;IA-12(4);IA-8;SI-10;SI-3;SI-4;SI-5;SI-7",
+          "title": "Account Management; Access Enforcement; Separation of Duties; Least Privilege; In-person Validation and Verification; Identification and Authentication (Non-organizational Users); Information Input Validation; Malicious Code Protection; System Monitoring; Security Alerts, Advisories, and Directives; Software, Firmware, and Information Integrity",
+          "profiles": [
+            "Low",
+            "Moderate",
+            "High"
+          ]
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        },
+        "pci-dss": {
+          "controlId": "11.2;4.1;4.2.1;7.2.1;7.2.2;7.2.3;7.2.5;7.2.6;8.2.4;8.2.5;8.3.10;8.3.5;8.6;8.6.1"
+        },
+        "soc2": {
+          "controlId": "CC6.1;CC6.1-POF3;CC6.1-POF4;CC6.2;CC6.2-POF1;CC6.2-POF3;CC6.3-POF1;CC6.3-POF2;CC6.6;CC6.6-POF2;PI1.2-POF1;PI1.2-POF2;PI1.2-POF3",
+          "title": "Logical Access Security Software, Infrastructure, and Architectures; Prior to Issuing System Credentials and Granting System Access; Restriction of Access to System Boundaries"
+        },
+        "cis-m365-v6": {
+          "controlId": "7.2.3"
+        },
+        "cis-m365-v7": {
+          "controlId": "7.2.3"
+        }
+      },
+      "impactRating": {
+        "severity": "Medium",
+        "rationale": "Failure to uniquely identify and centrally Authenticate, Authorize and Audit (AAA) third-party users and processes that provide services to the organization exposes the tenant to: Inability to maintain individual accountability, Improper assignment of privileged functions.",
+        "scfWeighting": 9
+      },
+      "notes": "CSOM tenant RequireAnonymousLinksExpireInDays, FileAnonymousLinkType, FolderAnonymousLinkType. Pass when Anyone links are disabled."
+    },
+    {
+      "checkId": "SPO-RCD-001",
+      "name": "Ensure SharePoint restricted access control is enabled (SharePoint Advanced Management)",
+      "category": "GOVERNANCE",
+      "collector": "SharePoint",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      },
+      "notes": "CSOM tenant EnableRestrictedAccessControl; NotLicensed without SharePoint Advanced Management or Microsoft 365 Copilot."
+    },
+    {
+      "checkId": "SPO-DAG-001",
+      "name": "Ensure data access governance (oversharing) reports are run at least quarterly",
+      "category": "GOVERNANCE",
+      "collector": "SharePoint",
+      "hasAutomatedCheck": false,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      },
+      "notes": "Attestation only: Get-SPODataAccessGovernanceInsight has no REST path. Emitted as Unknown with that reason."
+    },
+    {
+      "checkId": "TEAMS-PRIVATE-001",
+      "name": "Ensure every team has at least two owners; public teams and teams with guests are reviewed",
+      "category": "PRIVATE",
+      "collector": "Teams",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "Medium"
+      },
+      "frameworks": {
+        "nist-csf": {
+          "controlId": "PR.AA-05"
+        }
+      },
+      "notes": "Graph groups filtered to Teams: visibility, owner count, guest members. Fail on fewer than 2 owners; Warning lists public teams."
+    },
+    {
+      "checkId": "TEAMS-APPS-003",
+      "name": "Ensure users cannot upload custom apps (sideloading) in the Global app setup policy",
+      "category": "APPS",
+      "collector": "Teams",
+      "hasAutomatedCheck": true,
+      "licensing": {
+        "minimum": "E3"
+      },
+      "frameworks": {
+        "cmmc": {
+          "controlId": "CM.L2-3.4.9"
+        },
+        "fedramp": {
+          "controlId": "CM-11"
+        },
+        "hipaa": {
+          "controlId": "2.M.A;2.S.A"
+        },
+        "iso-27001": {
+          "controlId": "8.19"
+        },
+        "iso-27017": {
+          "controlId": "12.5.1;12.6.2"
+        },
+        "mitre-attack": {
+          "controlId": "T1021.005;T1059;T1059.006;T1176;T1195;T1195.001;T1195.002;T1218;T1218.001;T1218.002;T1218.003;T1218.004;T1218.005;T1218.008;T1218.009;T1218.012;T1218.013;T1218.014;T1505;T1505.001;T1505.002;T1505.004;T1543;T1543.001;T1543.002;T1543.003;T1543.004;T1547.013;T1550.001;T1564.009;T1569;T1569.001"
+        },
+        "nist-800-171": {
+          "controlId": "3.4.9"
+        },
+        "nist-800-53": {
+          "controlId": "CM-11;CM-11(2)",
+          "title": "User-installed Software; Software Installation with Privileged Status",
+          "profiles": [
+            "Low",
+            "Moderate",
+            "High"
+          ]
+        },
+        "nist-csf": {
+          "controlId": "PR.PS-05"
+        },
+        "soc2": {
+          "controlId": "CC6.8-POF1"
+        },
+        "cis-m365-v6": {
+          "controlId": "8.4.1"
+        },
+        "cis-m365-v7": {
+          "controlId": "8.4.1"
+        }
+      },
+      "impactRating": {
+        "severity": "Medium",
+        "rationale": "Failure to restrict the ability of non-privileged users to install unauthorized software exposes the tenant to: Inability to maintain individual accountability, Improper assignment of privileged functions, Privilege escalation.",
+        "scfWeighting": 10
+      },
+      "notes": "Teams admin backend Get-CsTeamsAppSetupPolicy Global AllowSideLoading."
+    }
+  ]
+}

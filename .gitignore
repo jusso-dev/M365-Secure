@@ -5,3 +5,7 @@ M365-Assessment/
 *.html
 *.pdf
 *.csv
+
+# Generated assessment output (never commit tenant data)
+/output/
+/m365-assess-output/

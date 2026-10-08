@@ -1,8 +1,10 @@
 mod assessment;
 mod auth;
 mod cli;
+mod clients;
 mod compliance;
 mod graph;
+mod junction;
 mod modules;
 mod output;
 mod report;
@@ -301,6 +303,7 @@ async fn handle_scan(
             println!("    collaboration SharePoint, Teams, Forms");
             println!("    intune        Device management and compliance");
             println!("    hybrid        Entra Connect sync status");
+            println!("    azure         Azure RBAC, Defender for Cloud, Key Vault, storage, backup, Sentinel");
             println!();
             println!("  {}", "Opt-in Modules:".bright_cyan());
             println!("    powerbi       Power BI tenant security settings");
@@ -362,8 +365,12 @@ async fn handle_report(action: ReportCommands) -> Result<()> {
 fn handle_info() -> Result<()> {
     output::print_banner();
     println!("{}", "Tool Information:".bright_white().bold());
-    println!("  Version:    1.0.0");
-    println!("  Platform:   macOS (Rust)");
+    println!("  Version:    {}", env!("CARGO_PKG_VERSION"));
+    println!(
+        "  Platform:   {} ({})",
+        std::env::consts::OS,
+        std::env::consts::ARCH
+    );
     println!("  Runtime:    Tokio async");
     println!("  Auth:       OAuth2 Device Code / Client Credentials");
     println!("  Storage:    macOS Keychain / Encrypted file");
@@ -374,7 +381,7 @@ fn handle_info() -> Result<()> {
     }
     println!();
     println!("{}", "Compliance Frameworks:".bright_white().bold());
-    println!("  CIS Microsoft 365 Foundations v6 (E3/E5 L1/L2)");
+    println!("  CIS Microsoft 365 Foundations v7 and v6 (E3/E5 L1/L2)");
     println!("  NIST 800-53 Rev 5 / NIST CSF 2.0");
     println!("  ISO 27001:2022");
     println!("  SOC 2 TSC");

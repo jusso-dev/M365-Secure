@@ -1,0 +1,52 @@
+{
+  "checks": [
+    {
+      "checkId": "EXO-APPRBAC-001",
+      "name": "Ensure applications with mailbox application permissions are scoped by an application access policy or RBAC for Applications",
+      "category": "APPRBAC",
+      "collector": "ExchangeOnline",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v7": {
+          "controlId": "5.1.5.4"
+        },
+        "nist-csf": {
+          "controlId": "PR.AA-05;PR.DS-01"
+        },
+        "essential-eight": {
+          "controlId": "ML2-RestrictAdminPrivileges"
+        },
+        "cisa-scuba": {
+          "controlId": "MS.EXO.17.1v1"
+        }
+      }
+    },
+    {
+      "checkId": "EXO-ANTISPAM-ALLOW-001",
+      "name": "Ensure inbound anti-spam policies do not contain allowed sender domains",
+      "category": "ANTISPAM",
+      "collector": "ExchangeOnline",
+      "hasAutomatedCheck": true,
+      "impactRating": {
+        "severity": "High"
+      },
+      "frameworks": {
+        "cis-m365-v6": {
+          "controlId": "2.1.14"
+        },
+        "cis-m365-v7": {
+          "controlId": "2.1.14"
+        },
+        "nist-csf": {
+          "controlId": "DE.CM-09"
+        },
+        "essential-eight": {
+          "controlId": "ML1-P6;ML2-P5;ML3-P4"
+        }
+      }
+    }
+  ]
+}

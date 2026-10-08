@@ -1,0 +1,202 @@
+{
+  "checks": [
+    {
+      "checkId": "AZ-ACCESS-001",
+      "name": "Azure subscriptions readable by the assessment",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "Info" },
+      "frameworks": {
+        "nist-csf": { "controlId": "ID.AM-01" },
+        "mcsb": { "controlId": "AM-1" }
+      }
+    },
+    {
+      "checkId": "AZ-RBAC-001",
+      "name": "No standing Owner or User Access Administrator for users at subscription or management-group scope",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "Critical" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.AA-05" },
+        "essential-eight": { "controlId": "ML3-P5" },
+        "mcsb": { "controlId": "PA-1;PA-2;PA-7" }
+      }
+    },
+    {
+      "checkId": "AZ-RBAC-002",
+      "name": "No User Access Administrator assignment at root scope",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "Critical" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.AA-05" },
+        "essential-eight": { "controlId": "ML2-P5" },
+        "mcsb": { "controlId": "PA-1;PA-7" }
+      }
+    },
+    {
+      "checkId": "AZ-DEFENDER-001",
+      "name": "Defender for Cloud plans enabled where matching resources exist",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "ID.RA-01;DE.CM-09" },
+        "mcsb": { "controlId": "PV-2;LT-1" }
+      }
+    },
+    {
+      "checkId": "AZ-DEFENDER-002",
+      "name": "Defender for Cloud secure score and unhealthy high-severity recommendations",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "Medium" },
+      "frameworks": {
+        "nist-csf": { "controlId": "ID.RA-01" },
+        "mcsb": { "controlId": "PV-2" }
+      }
+    },
+    {
+      "checkId": "AZ-KV-001",
+      "name": "Key vaults use Azure RBAC, purge protection and restricted networking",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.AA-05;PR.DS-01" },
+        "mcsb": { "controlId": "DP-8;DP-6" }
+      }
+    },
+    {
+      "checkId": "AZ-KV-002",
+      "name": "Key vaults send diagnostic logs to a destination",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "Medium" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.PS-04" },
+        "mcsb": { "controlId": "LT-3" }
+      }
+    },
+    {
+      "checkId": "AZ-MI-001",
+      "name": "Workloads use managed identities and storage disallows Shared Key access",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.AA-01" },
+        "mcsb": { "controlId": "IM-3;IM-8" }
+      }
+    },
+    {
+      "checkId": "AZ-PUBLIC-001",
+      "name": "Storage and PaaS data services closed to anonymous and public network access",
+      "category": "AZURE",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.AA-05;PR.DS-01" },
+        "mcsb": { "controlId": "NS-2;DP-1" }
+      }
+    },
+    {
+      "checkId": "AZ-BACKUP-001",
+      "name": "Azure Backup vaults have always-on soft delete, locked immutability and multi-user authorisation",
+      "category": "BACKUP",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.DS-11" },
+        "essential-eight": { "controlId": "ML2-P8" },
+        "mcsb": { "controlId": "BR-2;BR-3" }
+      }
+    },
+    {
+      "checkId": "LOG-DIAG-001",
+      "name": "Entra ID sign-in and audit logs exported through diagnostic settings",
+      "category": "LOGGING",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.PS-04;DE.AE-03" },
+        "essential-eight": { "controlId": "ML2-P7;ML2-P5" },
+        "mcsb": { "controlId": "LT-5;LT-6" }
+      }
+    },
+    {
+      "checkId": "LOG-RETENTION-001",
+      "name": "Log Analytics workspaces receiving Entra logs retain for at least 12 months",
+      "category": "LOGGING",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.PS-04" },
+        "mcsb": { "controlId": "LT-6" }
+      }
+    },
+    {
+      "checkId": "LOG-SENTINEL-001",
+      "name": "Microsoft Sentinel ingests Microsoft 365 data and runs enabled analytics rules",
+      "category": "LOGGING",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "DE.AE-03;DE.CM-03" },
+        "mcsb": { "controlId": "LT-1;LT-2;LT-5" }
+      }
+    },
+    {
+      "checkId": "LOG-DETECT-001",
+      "name": "Enabled detection rules across Sentinel and Defender XDR",
+      "category": "LOGGING",
+      "collector": "ARM",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "DE.CM-03;DE.AE-02" },
+        "essential-eight": { "controlId": "ML2-P5" },
+        "mcsb": { "controlId": "LT-1;LT-2" }
+      }
+    },
+    {
+      "checkId": "BCK-M365-001",
+      "name": "Microsoft 365 Backup protection policies active for Exchange, SharePoint and OneDrive",
+      "category": "BACKUP",
+      "collector": "Graph",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "PR.DS-11" },
+        "essential-eight": { "controlId": "ML1-P8" },
+        "mcsb": { "controlId": "BR-1" }
+      }
+    },
+    {
+      "checkId": "PP-GOVERNANCE-001",
+      "name": "Power Platform rule-based data policies govern connectors for agents and flows",
+      "category": "POWERPLATFORM",
+      "collector": "PowerPlatform",
+      "hasAutomatedCheck": true,
+      "impactRating": { "severity": "High" },
+      "frameworks": {
+        "nist-csf": { "controlId": "ID.AM-02;PR.AA-05" },
+        "mcsb": { "controlId": "AM-2" }
+      }
+    }
+  ]
+}
