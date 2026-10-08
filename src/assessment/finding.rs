@@ -256,6 +256,18 @@ impl Finding {
         error: impl std::fmt::Display,
     ) -> Finding {
         let err = error.to_string();
+        // Some failures mean the tenant doesn't have the feature at all; those are Not Licensed, not Unknown.
+        if let Some(feature) = licence_gate(&err) {
+            return Finding::new(check_id, category, section, setting, description)
+                .status(FindingStatus::NotLicensed)
+                .current_value(format!("Not licensed: {} ({})", feature, short(&err)))
+                .expected_value("Feature licensed and enabled")
+                .remediation(format!(
+                    "This control needs {}. Add the licence or treat the control as not applicable.",
+                    feature
+                ))
+                .build();
+        }
         let advice = if err.contains("Authorization_RequestDenied")
             || err.contains("AADSTS65001")
             || err.contains("Forbidden")
@@ -274,5 +286,63 @@ impl Finding {
                 "Resolve the error above and re-run. The control is unassessed, not failing.",
             )
             .build()
+    }
+}
+
+/// The licence or service a Graph error says the tenant is missing, when the error is a licence gate.
+fn licence_gate(err: &str) -> Option<&'static str> {
+    if err.contains("Authentication_RequestFromNonPremiumTenantOrB2CTenant")
+        || err.contains("AadPremiumLicenseRequired")
+        || err.contains("PremiumLicenseRequired")
+    {
+        Some("Microsoft Entra ID P1")
+    } else if err.contains("Request not applicable to target tenant") {
+        Some("Microsoft Intune (no MDM authority or Intune licence in this tenant)")
+    } else if err.contains("TenantNotEnabled") {
+        Some("the service to be enabled for the tenant (for example Microsoft 365 Backup)")
+    } else if err.contains("Account is not provisioned") {
+        Some("Microsoft Defender XDR to be provisioned")
+    } else {
+        None
+    }
+}
+
+/// First line of an error, trimmed to keep report cells readable.
+fn short(err: &str) -> String {
+    let line = err.lines().next().unwrap_or(err).trim();
+    if line.len() > 160 {
+        format!("{}…", &line[..157])
+    } else {
+        line.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn licence_gated_errors_become_not_licensed() {
+        let f = Finding::unknown(
+            "ENTRA-ADMIN-004",
+            "Entra",
+            "Identity",
+            "Stale admins",
+            "desc",
+            "Graph API error [Authentication_RequestFromNonPremiumTenantOrB2CTenant]: Tenant doesn't have premium license",
+        );
+        assert_eq!(f.status, FindingStatus::NotLicensed);
+        assert!(f.current_value.contains("Entra ID P1"));
+
+        let f = Finding::unknown(
+            "X-Y-001",
+            "c",
+            "s",
+            "t",
+            "d",
+            "Graph API error [Forbidden]: nope",
+        );
+        assert_eq!(f.status, FindingStatus::Unknown);
+        assert!(f.current_value.contains("Grant the permission"));
     }
 }

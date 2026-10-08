@@ -28,17 +28,38 @@ pub fn active_label_names(labels: &[Value]) -> Vec<String> {
         .collect()
 }
 
+/// Published sensitivity labels. Delegated sign-in reads them under `/me`; the tenant-level path is
+/// application-only. Older tenants still answer on the beta policy endpoint.
 async fn sensitivity_labels(graph: &GraphClient) -> Result<Vec<Value>> {
-    match graph
-        .get_all::<Value>("/v1.0/security/informationProtection/sensitivityLabels")
-        .await
-    {
-        Ok(v) => Ok(v),
-        Err(e1) => graph
-            .get_all::<Value>("/beta/security/informationProtection/sensitivityLabels")
-            .await
-            .map_err(|e2| anyhow::anyhow!("{e1}; beta: {e2}")),
+    let mut errors = Vec::new();
+    for path in [
+        "/v1.0/me/security/informationProtection/sensitivityLabels",
+        "/beta/me/security/informationProtection/sensitivityLabels",
+        "/beta/me/informationProtection/policy/labels",
+        "/v1.0/security/informationProtection/sensitivityLabels",
+    ] {
+        match graph.get_all::<Value>(path).await {
+            Ok(v) => return Ok(v),
+            Err(e) => errors.push(format!("{path}: {e}")),
+        }
     }
+    anyhow::bail!("{}", errors.join("; "))
+}
+
+/// Label policy settings (default label, mandatory labelling, downgrade justification) for the signed-in user.
+async fn label_policy_settings(graph: &GraphClient) -> Result<Value> {
+    let mut errors = Vec::new();
+    for path in [
+        "/v1.0/me/security/informationProtection/labelPolicySettings",
+        "/beta/me/security/informationProtection/labelPolicySettings",
+        "/beta/security/informationProtection/labelPolicySettings",
+    ] {
+        match graph.get_json(path).await {
+            Ok(v) => return Ok(v),
+            Err(e) => errors.push(format!("{path}: {e}")),
+        }
+    }
+    anyhow::bail!("{}", errors.join("; "))
 }
 
 pub async fn check_labels(
@@ -81,9 +102,7 @@ pub async fn check_labels(
         "Sensitivity Labels Published",
     );
 
-    let settings = graph
-        .get_json("/beta/security/informationProtection/labelPolicySettings")
-        .await;
+    let settings = label_policy_settings(graph).await;
     record_one(
         findings,
         settings.map(|s| {

@@ -25,7 +25,10 @@ pub async fn authenticate(config: &AuthConfig) -> Result<TokenInfo> {
     // Entra rejects the whole request if any one scope is unknown to the app or the resource
     // (AADSTS650053). Drop the named scope and try again so one stale name doesn't block sign-in;
     // the checks that need it will report Unknown and say so.
-    let mut scopes: Vec<&str> = GRAPH_SCOPES.to_vec();
+    // offline_access is what makes Entra issue a refresh token; without it every resource token
+    // (Exchange, SharePoint admin, Azure, ...) is unobtainable after sign-in.
+    let mut scopes: Vec<&str> = vec!["offline_access", "openid", "profile"];
+    scopes.extend_from_slice(GRAPH_SCOPES);
     let dc: DeviceCodeResponse = loop {
         let scope = scopes.join(" ");
         let params = [("client_id", config.client_id.as_str()), ("scope", &scope)];
@@ -107,6 +110,12 @@ pub async fn authenticate(config: &AuthConfig) -> Result<TokenInfo> {
 
         if let Some(access_token) = body.get("access_token").and_then(|v| v.as_str()) {
             println!("{}", "Authentication successful!".bright_green().bold());
+            if body.get("refresh_token").and_then(|v| v.as_str()).is_none() {
+                println!(
+                    "  {} Entra issued no refresh token; checks that read Exchange, SharePoint, Teams, Azure or Defender for Endpoint will report Unknown.",
+                    "warning:".yellow()
+                );
+            }
             return Ok(TokenInfo {
                 access_token: access_token.to_string(),
                 refresh_token: body

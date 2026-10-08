@@ -154,12 +154,24 @@ impl AssessmentEngine {
                         .filter(|f| f.status == FindingStatus::Warning)
                         .count();
 
+                    let unknown_count = result
+                        .findings
+                        .iter()
+                        .filter(|f| f.status == FindingStatus::Unknown)
+                        .count();
+                    let not_licensed_count = result
+                        .findings
+                        .iter()
+                        .filter(|f| f.status == FindingStatus::NotLicensed)
+                        .count();
                     println!(
-                        "     {} checks: {} pass, {} fail, {} warn",
+                        "     {} checks: {} pass, {} fail, {} warn, {} unknown, {} not licensed",
                         result.findings.len().to_string().bright_white(),
                         pass_count.to_string().bright_green(),
                         fail_count.to_string().bright_red(),
                         warn_count.to_string().bright_yellow(),
+                        unknown_count.to_string().bright_magenta(),
+                        not_licensed_count.to_string().dimmed(),
                     );
 
                     let mut findings = self.findings.write().await;

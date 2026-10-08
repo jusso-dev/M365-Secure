@@ -1,6 +1,6 @@
 [package]
 name = "m365-assess"
-version = "1.1.1"
+version = "1.1.2"
 edition = "2021"
 authors = ["Justin Middler"]
 description = "Microsoft 365 Security Assessment CLI - Rust port of M365-Assess"

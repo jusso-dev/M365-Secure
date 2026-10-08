@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.2] - 2026-10-08
+
+### Fixed
+
+- Sign-in never requested `offline_access`, so Entra issued no refresh token and every Exchange, SharePoint, Teams, Azure, Defender for Endpoint and Power Platform check reported Unknown. Sign out and in again after upgrading.
+- Sensitivity label checks read the delegated `/me/security/informationProtection` endpoints; the tenant-level path they used is application-only.
+- Errors that mean the tenant lacks the feature (no Entra ID P1, Intune not enabled, Microsoft 365 Backup not enabled, Defender XDR not provisioned) now produce Not Licensed instead of Unknown.
+
+### Changed
+
+- Per-area CSV files are grouped by category (Identity, Exchange Online, Collaboration, Intune, Security, ...) instead of one file per section.
+- The scan summary prints Unknown and Not Licensed counts per module.
+
 ## [1.1.1] - 2026-10-08
 
 ### Fixed

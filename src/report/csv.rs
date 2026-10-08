@@ -1,5 +1,4 @@
 use anyhow::Result;
-use std::collections::HashMap;
 use std::path::Path;
 
 use crate::assessment::finding::Finding;
@@ -50,64 +49,36 @@ pub fn generate_csv_report(path: &Path, findings: &[Finding]) -> Result<()> {
     Ok(())
 }
 
+/// One CSV per finding category (Entra, Exchange, SharePoint, ...), so a reviewer can hand each area
+/// to its owner. Section-level detail stays in the combined findings file.
 pub fn generate_section_csvs(
     output_dir: &Path,
     findings: &[Finding],
     tenant_domain: &str,
 ) -> Result<Vec<String>> {
-    let mut by_section: HashMap<String, Vec<&Finding>> = HashMap::new();
+    let mut by_category: std::collections::BTreeMap<String, Vec<&Finding>> =
+        std::collections::BTreeMap::new();
     for f in findings {
-        by_section.entry(f.section.clone()).or_default().push(f);
+        let key = if f.category.trim().is_empty() {
+            f.section.clone()
+        } else {
+            f.category.clone()
+        };
+        by_category.entry(key).or_default().push(f);
     }
 
-    let section_numbers = vec![
-        ("Identity", "02"),
-        ("Conditional Access", "05"),
-        ("Enterprise Apps", "06"),
-        ("App Registrations", "06b"),
-        ("Password Policy", "07"),
-        ("Entra Security", "07b"),
-        ("Licensing", "08"),
-        ("Exchange", "09"),
-        ("Mail Flow", "10"),
-        ("DNS", "12"),
-        ("Intune", "13"),
-        ("Compliance", "14"),
-        ("Defender", "18"),
-        ("SharePoint", "20"),
-        ("Teams", "21"),
-        ("Forms", "21c"),
-        ("Power BI", "22"),
-        ("Hybrid", "23"),
-        ("Azure", "24"),
-        ("Logging", "25"),
-        ("Backup", "26"),
-        ("Defender for Endpoint", "13b"),
-        ("Authentication Methods", "03"),
-        ("Privileged Access", "04"),
-        ("Purview", "19c"),
-        ("SOC 2", "33"),
-        ("Inventory", "28"),
-        ("Value Opportunity", "40"),
-    ];
-
-    let section_map: HashMap<&str, &str> = section_numbers.into_iter().collect();
     let mut generated = Vec::new();
-
-    for (section, section_findings) in &by_section {
-        let prefix = section_map.get(section.as_str()).unwrap_or(&"99");
-        let filename = format!(
-            "{}-{}-{}.csv",
-            prefix,
-            section.replace(' ', "-"),
-            tenant_domain
-        );
-        let path = output_dir.join(&filename);
-
-        let owned_findings: Vec<Finding> = section_findings.iter().map(|f| (*f).clone()).collect();
-        generate_csv_report(&path, &owned_findings)?;
+    for (category, category_findings) in &by_category {
+        let slug: String = category
+            .chars()
+            .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
+            .collect::<String>()
+            .trim_matches('-')
+            .to_string();
+        let path = output_dir.join(format!("{}-{}.csv", slug, tenant_domain));
+        let owned: Vec<Finding> = category_findings.iter().map(|f| (*f).clone()).collect();
+        generate_csv_report(&path, &owned)?;
         generated.push(path.display().to_string());
     }
-
     Ok(generated)
 }
