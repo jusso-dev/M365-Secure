@@ -79,6 +79,12 @@ pub async fn authenticate(config: &AuthConfig) -> Result<TokenInfo> {
             .arg(&dc.verification_uri)
             .spawn();
     }
+    #[cfg(windows)]
+    {
+        let _ = std::process::Command::new("explorer")
+            .arg(&dc.verification_uri)
+            .spawn();
+    }
 
     // Poll for token
     let token_url = format!(

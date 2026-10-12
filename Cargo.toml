@@ -29,9 +29,6 @@ clap = { version = "4", features = ["derive", "env"] }
 # OAuth2
 oauth2 = "4"
 
-# macOS Keychain
-security-framework = "3"
-
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
@@ -86,9 +83,6 @@ async-trait = "0.1"
 # Regex
 regex = "1"
 
-# XLSX output
-xlsxwriter = "0.6"
-
 # Junction: Microsoft API operation catalogue + read-only execution runtime (ARM, Resource Graph,
 # Defender for Cloud, Sentinel, Defender for Endpoint). Pinned to a commit; bump deliberately.
 junction-core = { git = "https://github.com/jusso-dev/junction", rev = "25dce87" }
@@ -107,3 +101,7 @@ strip = true
 regex = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# macOS Keychain
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = "3"
