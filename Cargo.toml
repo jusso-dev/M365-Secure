@@ -50,7 +50,7 @@ csv = "1"
 url = "2"
 
 # Base64
-base64 = "0.22"
+base64 = "0.23"
 
 # Template engine for HTML reports
 tera = "1"
