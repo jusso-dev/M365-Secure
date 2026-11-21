@@ -53,7 +53,7 @@ url = "2"
 base64 = "0.22"
 
 # Template engine for HTML reports
-tera = "1"
+tera = "2"
 
 # DNS resolver (for SPF/DKIM/DMARC checks)
 trust-dns-resolver = "0.23"
