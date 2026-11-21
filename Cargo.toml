@@ -27,7 +27,7 @@ serde_json = "1"
 clap = { version = "4", features = ["derive", "env"] }
 
 # OAuth2
-oauth2 = "4"
+oauth2 = "5"
 
 # Logging
 tracing = "0.1"
