@@ -72,7 +72,7 @@ dirs = "6"
 futures = "0.3"
 
 # Rate limiting
-governor = "0.8"
+governor = "0.10"
 
 # Retry logic
 backon = "1"
